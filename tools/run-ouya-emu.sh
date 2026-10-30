@@ -30,4 +30,7 @@ fi
 
 echo "Launching AVD: $AVD_NAME"
 echo "Connect a gamepad before launch; Android Emulator forwards supported host gamepad input."
-exec "$EMULATOR" -avd "$AVD_NAME" -gpu auto -writable-system -no-snapshot-load
+if [[ "${OUYA_WRITABLE_SYSTEM:-0}" == "1" ]]; then
+  exec "$EMULATOR" -avd "$AVD_NAME" -gpu auto -writable-system -no-snapshot-load
+fi
+exec "$EMULATOR" -avd "$AVD_NAME" -gpu auto -no-snapshot-load
