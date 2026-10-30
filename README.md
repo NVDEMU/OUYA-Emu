@@ -1,156 +1,40 @@
-<img src="banner.png">
-<p align="center">
-<a href="https://https://blissos.org">Website</a> |
-<a href="https://sourceforge.net/projects/blissos-x86">Download</a> |
-<a href="https://www.paypal.com/donate/?hosted_button_id=J5SLZ7MQNCT24">Donate</a> |
-<a href="https://docs.blissos.org/">Documentation</a> |
-<a href="https://t.me/blissx86">Telegram</a>
+# OUYA-Emu
 
-## BlissOS
+**An experiment in building an emulator for a previously un-emulated gaming platform.**
 
-Download the BlissOS source code, based on [AOSP](https://android.googlesource.com) & [Android-x86](http://android-x86.org/)
+OUYA-Emu is a dedicated OUYA-compatible Android environment for desktop systems. Rather than emulate the Tegra 3 hardware from transistor level, the project starts with an x86_64 Android guest and adds the OUYA-specific launcher, controller behavior, and framework compatibility needed to run original OUYA software.
 
-<div align="center">
-<strong><i>Modified for PC build using Android-Generic Project</i></strong>
-<br>
-<img src="https://i.ibb.co/rf2rv3M/Yep1l4L.png">
-<br>
-</div>
+The current Android base is the BlissOS **Typhoon x86_64** manifest branch. This is a development base, not a claim of full OUYA hardware emulation or game compatibility.
 
----------------------------------------------------
+## Current implementation
 
-Please read the [AOSP building instructions](http://source.android.com/source/index.html) before proceeding.
+- [x] Android x86_64 source/build base selected (BlissOS Typhoon).
+- [x] OUYA launcher application source added.
+- [x] Product integration fragment added to include the launcher in an Android system image.
+- [ ] Build and boot a customized Android image.
+- [ ] Verify ARM32 native-code translation on the selected guest image.
+- [ ] Validate OUYA controller mappings and original game behavior.
+- [ ] Implement missing OUYA SDK/framework services.
 
------------------------
-## What you need to build [BlissOS](https://github.com/BlissRoms-x86/manifest)
+See [the OUYA guest setup guide](device/ouya/README.md) and [launcher README](packages/apps/OUYALauncher/README.md).
 
+## Build base
 
-    Latest Ubuntu LTS Releases https://www.ubuntu.com/download/server
-    Decent CPU (Dual Core or better for a faster performance)
-    8GB RAM (16GB for Virtual Machine)
-    250GB Hard Drive (about 170GB for the Repo and then building space needed)
-  
------------------------
+The repository is a repo-manifest checkout. Initialize and sync the selected branch:
 
-## Grabbing Dependencies
-
-    sudo apt-get install git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386  lib32ncurses-dev x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev libxml2-utils xsltproc unzip squashfs-tools python3-mako libssl-dev ninja-build lunzip syslinux syslinux-utils gettext genisoimage gettext bc xorriso xmlstarlet meson glslang-tools git-lfs libncurses6 libncurses6:i386 libelf-dev aapt zstd rdfind nasm
-
-    Rust toolchain & programs are also required. We recommend you to install them using rustup !
-    First, remove distro' Rust toolchain:
-    sudo apt remove rustc bindgen cargo -y
-    
-    Next install rustup by following this page:
-    https://www.rust-lang.org/tools/install
-
-    After getting rustup installed, install required programs & toolchain:
-    cargo install cargo-ndk
-    rustup target add x86_64-linux-android i686-linux-android
-    cargo install --version 0.69.1 bindgen-cli
-    cargo install cbindgen
-
-    As Ubuntu 24.04+ removed libncurses5, we need to symlink some libncurses6 libraries
-    to be libncurses5 in order to make the toolchain work.
-    !!!WARNING: These commands are poking into /lib, please proceed with cautions
-    sudo ln -s /lib/x86_64-linux-gnu/libncurses.so.6 /lib/x86_64-linux-gnu/libncurses.so.5
-    sudo ln -s /lib/x86_64-linux-gnu/libncursesw.so.6 /lib/x86_64-linux-gnu/libncursesw.so.5
-    sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
-    sudo ln -s /lib/i386-linux-gnu/libncurses.so.6 /lib/i386-linux-gnu/libncurses.so.5
-    sudo ln -s /lib/i386-linux-gnu/libncursesw.so.6 /lib/i386-linux-gnu/libncursesw.so.5
-    sudo ln -s /lib/i386-linux-gnu/libtinfo.so.6 /lib/i386-linux-gnu/libtinfo.so.5
-
-## Initializing Repository
-
-**Repo initialization**
-   
-    repo init -u https://github.com/BlissOS/platform_manifest.git -b typhoon-x86 --git-lfs
-
-**Sync repo**
-
-    repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all) --optimized-fetch --prune
-
-## Options
-
-	BLISS_BUILD_VARIANT - (vanilla, gapps, pixelgapps, foss, microg) - We currently use this to specify what type of extra apps and services to include in the build. 
-***Note: Default BLISS_BUILD_VARIANT is VANILLA.***
-
-   BLISS_SPECIAL_VARIANT - This can be custom set if you wanna build a version for a specific device 
-    for example `-jupiter` for Steam Deck or `-surface` for Microsoft Surface series
-
-## Setup FOSS apps (if you choose to build FOSS)
-----------------------------
-
-- If you want to build with FOSS (this will include microG Services & some extra apps), go to vendor/foss and then type
-```
-    ./update.sh
-```
-And then choose 1 (x86/x86_64) to fetch all the apps. If you want to include Bromite Webview in, type this instead
-```
-    ./update.sh "" bromite
-```
-## Building
-
-    $ . build/envsetup.sh
-    $ lunch bliss_x86_64-userdebug
-    $ make iso_img
-     
-***Adding build options***
-
-Before running `lunch`, you can add variables into the build to integrate more stuff into the image.
-Note that you can put different variables into the build.
-
-- **To build with FOSS**
-```
-    export BLISS_BUILD_VARIANT=foss
+```bash
+repo init -u https://github.com/NVDEMU/OUYA-Emu.git -b typhoon-x86 --git-lfs
+repo sync -c --force-sync --no-tags --no-clone-bundle -j"$(nproc --all)" --optimized-fetch --prune
 ```
 
-- **To build with [MindTheGapps](https://gitlab.com/MindTheGapps/vendor_gapps)**
-```
-    export BLISS_BUILD_VARIANT=gapps
-```
-- **To add a custom label into a device-specific build**
-```
-    export BLISS_SPECIAL_VARIANT=-Jupiter
-```
+Follow the upstream BlissOS build prerequisites in its documentation. The source tree is large and needs a Linux build host with substantial disk space. A successful source sync is not the same as a successful OUYA image build.
 
-- **To build the special "surface" variant which include kernel with patches from linux-surface and the iptsd userspace touchscreen daemon**
-```
-    export BOARD_IS_SURFACE_BUILD=true
-```
+## Experiment scope
 
-- **To build the special "go" variant for BlissOS Go**
-```
-    export BOARD_IS_GO_BUILD=true
-```
+This project aims to run original OUYA Android applications in a desktop-hosted Android environment and recreate the OUYA console experience. It does **not** currently emulate a physical Tegra 3 board, reproduce NVIDIA's proprietary GPU driver, or guarantee compatibility with every OUYA title.
 
-- **To build the special "zenith" variant for BlissOS Zenith**
-```
-    export BOARD_IS_ZENITH_BUILD=true
-```
+Original firmware, APKs, game data, and other copyrighted materials are not distributed by this repository. Supply files you are legally entitled to use.
 
-**More build options will be in Extras part including proprietary native-bridge/widevine libraries**
+## License
 
-Extras
--------
-
-We do offer some extra libraries that can be compiled into the build. These include :
-
-***Prebuilt Widevine from Windows Subsystem for Android***
-
-https://github.com/supremegamers/vendor_google_proprietary_widevine-prebuilt
-
-Clone to `vendor/google/proprietary/widevine-prebuilt`, The variable to activate this is `USE_WIDEVINE=true`
-
-***Google's ndk_translation***
-
-https://github.com/supremegamers/vendor_google_proprietary_ndk_translation-prebuilt
-
-Clone to `vendor/google/proprietary/ndk_translation-prebuilt`, The variable to activate this is `ANDROID_USE_NDK_TRANSLATION=true`
-
-***Windows Subsystem for Android's libhoudini*** 
-
-https://github.com/supremegamers/vendor_intel_proprietary_houdini
-
-Clone to `vendor/intel/proprietary/houdini`, The variable to activate this is `ANDROID_USE_INTEL_HOUDINI=true`
-## Report build issues
-- You can reach us via [Telegram (Android™-Generic (x86 PC) Community Development)](https://t.me/androidgenericpc)
+See [LICENSE](LICENSE) for the inherited base repository license. New project files are provided under the same license unless otherwise noted.
