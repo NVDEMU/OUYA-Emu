@@ -63,7 +63,7 @@ def extract_ramdisk_config(data: bytes, outdir: Path) -> list[str]:
         if not safe_name(str(relative)) or not relative.parts:
             continue
         if not (name.endswith((".rc", ".prop", ".fstab", ".conf")) or
-                name == "default.prop"):
+                name.startswith("fstab.") or name == "default.prop"):
             continue
         if (mode & 0o170000) != 0o100000:
             continue
