@@ -50,13 +50,16 @@ it is intentionally not included in the product packages.
 ## Quick start: host emulator
 
 Install Android SDK Platform-Tools and Android Emulator. Create an AVD named
-`OUYA-Emu` using an ARM64 Android system image with ARM32 app support.
+`OUYA-Emu` using an ARM64 AOSP/userdebug Android system image with ARM32 app
+support (Android 9–11 is a sensible first test).
 
 ```bash
 OUYA_AVD_NAME=OUYA-Emu bash tools/run-ouya-emu.sh
 ```
 
-The wrapper expects the Android SDK at `ANDROID_SDK_ROOT` or `ANDROID_HOME`.
+The wrapper expects the Android SDK at `ANDROID_SDK_ROOT` or `ANDROID_HOME`
+and launches with a writable system overlay. Use an AVD that permits
+`adb root` and `adb remount`; Google Play images are generally unsuitable.
 
 ## Import original OUYA firmware apps
 
@@ -78,7 +81,14 @@ Android product makefile:
 include vendor/ouya-emu/device/ouya/ouya_product.mk
 ```
 
-After boot, query HOME candidates and select the actual dashboard component:
+After importing, copy the original APKs into the guest's system partition and
+reboot:
+
+```bash
+bash tools/install-ouya-apks.sh
+```
+
+Then query HOME candidates and select the actual dashboard component:
 
 ```bash
 adb shell cmd package query-activities --brief \\\
@@ -87,6 +97,10 @@ bash tools/set-ouya-home.sh package.name/.DashboardActivity
 ```
 
 The component varies by firmware build and is intentionally not guessed.
+If an OUYA APK requires platform-signature permissions or a shared system UID,
+copying it into `/system` will not be enough; that compatibility remains
+unimplemented. The Bliss product-fragment route is a separate source-image
+integration path, not the AVD workflow above.
 
 See [the authentic system integration guide](device/ouya/README.md) and
 [controller mapping contract](controller/ouya-controller-profile.json).
