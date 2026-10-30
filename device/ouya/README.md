@@ -121,3 +121,14 @@ guest; touch-surface forwarding is not yet implemented or claimed.
 - [ ] ARM32 native OUYA game launches and renders.
 - [ ] OUYA SDK services (controller, billing/store, discover, firmware) are
       stubbed or redirected only where required, without replacing dashboard UI.
+
+
+## Installing games
+
+Games are installed as Android packages, not copied into the firmware image.
+With the guest running, use `tools/install-ouya-game.sh /path/to/title.apk`.
+The installer also accepts `.apks` split bundles. It invokes the guest's
+Android package manager through ADB and leaves the original game package
+intact. Installation and successful execution are separate checks: ARM32
+native code, OUYA SDK services, controller input, graphics, and obsolete
+Android APIs may still need compatibility implementation.
