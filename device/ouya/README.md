@@ -4,10 +4,10 @@ This is the first OUYA-specific product overlay for the BlissOS Typhoon x86_64 g
 
 ## Integration
 
-Copy this directory into the synced Android source tree at `device/ouya`, then include the product fragment from the selected x86_64 product makefile:
+The manifest syncs this repository into `vendor/ouya-emu`. Include the product fragment from the selected x86_64 product makefile:
 
 ```make
-include device/ouya/ouya_product.mk
+include vendor/ouya-emu/device/ouya/ouya_product.mk
 ```
 
 This fragment is intentionally not a standalone lunch target. Confirm the actual parent product makefile in the synced branch before editing it.
