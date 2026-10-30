@@ -40,10 +40,10 @@ with zipfile.ZipFile(source) as z:
         with z.open(i) as src, open(out + "/" + name, "wb") as dst:
             dst.write(src.read())
 PY
-      mapfile -d '' apks < <(find "$tmp" -maxdepth 1 -type f -name '*.apk' -print0)
-      (("${#apks[@]}" > 0)) || { echo "No APK splits extracted." >&2; exit 2; }
+      set -- "$tmp"/*.apk
+      [[ -f "$1" ]] || { echo "No APK splits extracted." >&2; exit 2; }
       echo "Installing split bundle $file"
-      "$ADB" install-multiple -r "${apks[@]}"
+      "$ADB" install-multiple -r "$@"
       rm -rf "$tmp"
       trap - EXIT
       ;;
