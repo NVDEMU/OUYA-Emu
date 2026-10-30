@@ -58,7 +58,7 @@ with ARM32 app support (Android 9–11 is a sensible first test). Launch it:
 OUYA_AVD_NAME=OUYA-Emu bash tools/run-ouya-emu.sh
 ```
 
-Then stage the imported original apps into the guest's system partition:
+Then install the imported original apps into the guest:
 
 ```bash
 bash tools/install-ouya-apks.sh
