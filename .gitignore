@@ -1,0 +1,9 @@
+# User-supplied proprietary OUYA firmware and imported apps
+/vendor/ouya-emu/proprietary/
+/vendor/ouya-emu/firmware/
+/*.img
+*.odex
+
+# Local Android emulator state
+/.android/
+/avd/
