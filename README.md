@@ -23,7 +23,7 @@ See [the OUYA guest setup guide](device/ouya/README.md) and [launcher README](pa
 The repository is a repo-manifest checkout. Initialize and sync the selected branch:
 
 ```bash
-repo init -u https://github.com/NVDEMU/OUYA-Emu.git -b typhoon-x86 --git-lfs
+repo init -u https://github.com/NVDEMU/OUYA-Emu.git -b typhoon-x86 -m bliss.xml --git-lfs
 repo sync -c --force-sync --no-tags --no-clone-bundle -j"$(nproc --all)" --optimized-fetch --prune
 ```
 
