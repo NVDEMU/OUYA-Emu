@@ -22,10 +22,13 @@
   <remote name="gitlab"
           fetch="https://gitlab.com/" />
 
-  <remote  name="arrow"
+  <remote name="arrow"
            fetch="https://github.com/ArrowOS"
            review="https://review.arrowos.net/"
            revision="refs/heads/arrow-13.0" />
+
+  <remote name="NVDEMU"
+          fetch="https://github.com/NVDEMU" />
 
   <!-- Remove first some AOSP repos -->
   <include name="remove.xml" />
@@ -151,4 +154,7 @@
   <project path="vendor/overlays" name="platform_vendor_overlays" remote="BlissRoms" />
   <project path="vendor/prebuilts" name="platform_vendor_prebuilts" remote="BlissRoms-gitlab" clone-depth="1" revision="typhoon" />
   <project path="vendor/support" name="platform_vendor_support" remote="BlissRoms" />
+
+  <!-- OUYA-Emu: project-specific guest overlay and launcher -->
+  <project path="vendor/ouya-emu" name="OUYA-Emu" remote="NVDEMU" revision="typhoon-x86" />
 </manifest>
