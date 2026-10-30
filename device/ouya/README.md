@@ -51,12 +51,25 @@ obsolete Android APIs may still need explicit compatibility work.
 
 ## Boot and select the actual dashboard
 
-Create an Android Emulator AVD named `OUYA-Emu` using an ARM64 system image,
-then launch it:
+Create an Android Emulator AVD named `OUYA-Emu` using an ARM64 AOSP/userdebug
+system image with ARM32 app support (Android 9–11 is a sensible first test).
+Launch it with the writable system overlay:
 
 ```bash
 OUYA_AVD_NAME=OUYA-Emu bash tools/run-ouya-emu.sh
 ```
+
+Then stage the imported original apps into the guest's system partition:
+
+```bash
+bash tools/install-ouya-apks.sh
+```
+
+This requires an emulator image that permits `adb root` and `adb remount`.
+Google Play AVD images generally are not suitable for this workflow. If the
+firmware apps require platform-signature permissions or a shared system UID,
+copying the APKs is not sufficient; the relevant OUYA framework and signing
+compatibility still need to be solved.
 
 After the imported firmware apps are installed, query HOME candidates:
 
