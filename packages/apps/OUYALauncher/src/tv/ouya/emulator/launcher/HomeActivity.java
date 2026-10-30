@@ -19,13 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Minimal OUYA-style home screen.
- *
- * Discovers installed applications advertising the public OUYA GAME category.
- * This is a launcher foundation, not yet an implementation of the proprietary
- * OUYA SDK or the original OUYA storefront.
- */
+/** Minimal OUYA-style home screen and first launcher integration milestone. */
 public final class HomeActivity extends Activity {
     private final List<ResolveInfo> games = new ArrayList<>();
     private LinearLayout gameList;
@@ -80,7 +74,6 @@ public final class HomeActivity extends Activity {
         footer.setTextSize(12);
         footer.setGravity(Gravity.CENTER_VERTICAL);
         root.addView(footer);
-
         setContentView(root);
     }
 
@@ -88,7 +81,7 @@ public final class HomeActivity extends Activity {
         games.clear();
         Intent query = new Intent(Intent.ACTION_MAIN);
         query.addCategory("tv.ouya.intent.category.GAME");
-        PackageManager pm = getPackageManager();
+        final PackageManager pm = getPackageManager();
         games.addAll(pm.queryIntentActivities(query, 0));
         Collections.sort(games, new Comparator<ResolveInfo>() {
             @Override
@@ -100,11 +93,10 @@ public final class HomeActivity extends Activity {
 
         gameList.removeAllViews();
         status.setText(games.size() + " OUYA game(s) installed");
-
         if (games.isEmpty()) {
             TextView empty = new TextView(this);
-            empty.setText("No OUYA games found. Install an APK that declares "
-                    + "the tv.ouya.intent.category.GAME category.");
+            empty.setText("No OUYA games found. Install an APK declaring "
+                    + "tv.ouya.intent.category.GAME.");
             empty.setTextColor(Color.WHITE);
             empty.setTextSize(18);
             empty.setPadding(0, 28, 0, 28);
@@ -127,9 +119,7 @@ public final class HomeActivity extends Activity {
             gameList.addView(item, params);
             item.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view) {
-                    launchGame(game);
-                }
+                public void onClick(View view) { launchGame(game); }
             });
             item.setOnKeyListener(new View.OnKeyListener() {
                 @Override
@@ -145,23 +135,17 @@ public final class HomeActivity extends Activity {
                 }
             });
         }
-
-        if (gameList.getChildCount() > 0) {
-            gameList.getChildAt(0).requestFocus();
-        }
+        if (gameList.getChildCount() > 0) gameList.getChildAt(0).requestFocus();
     }
 
     private void launchGame(ResolveInfo game) {
         Intent launch = new Intent(Intent.ACTION_MAIN);
         launch.addCategory("tv.ouya.intent.category.GAME");
-        launch.setClassName(game.activityInfo.packageName,
-                game.activityInfo.name);
-        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        launch.setClassName(game.activityInfo.packageName, game.activityInfo.name);
         try {
             startActivity(launch);
         } catch (RuntimeException error) {
-            status.setText("Could not launch " + game.loadLabel(getPackageManager())
-                    + ": " + error.getMessage());
+            status.setText("Could not launch game: " + error.getMessage());
         }
     }
 

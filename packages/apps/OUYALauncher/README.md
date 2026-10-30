@@ -1,25 +1,12 @@
 # OUYA Launcher
 
-A minimal Android home application for OUYA-Emu.
-
-## Current functionality
+A minimal Android HOME application for OUYA-Emu.
 
 - Registers as the Android HOME activity.
-- Discovers installed applications advertising `tv.ouya.intent.category.GAME`.
-- Displays a focusable, controller-navigable game list.
-- Launches the selected game.
-- Refreshes the list when returning from a game.
+- Discovers apps declaring `tv.ouya.intent.category.GAME`.
+- Displays a focusable game list navigable with D-pad/controller input.
+- Launches selected games and refreshes when returning.
 
-## Build integration
+Build with Soong and include `OUYALauncher` in the product using `device/ouya/ouya_product.mk`.
 
-The app uses Soong. Include `OUYALauncher` in the product with:
-
-```make
-PRODUCT_PACKAGES += OUYALauncher
-```
-
-The companion product fragment is `device/ouya/ouya_product.mk`.
-
-## Not implemented yet
-
-This is deliberately a first launcher milestone. It does not yet reproduce the original OUYA storefront, user accounts, purchase flow, system-menu overlay, proprietary OUYA SDK services, screenshots, or gamepad touchpad behavior. It also has not yet been compiled against the selected BlissOS branch or tested in a booted image.
+This is only the launcher foundation. The original storefront, account/purchase services, proprietary OUYA SDK APIs, system-menu overlay, screenshots, and controller touchpad behavior are not implemented yet. This app has not yet been compiled against BlissOS Typhoon or tested in a booted image.
