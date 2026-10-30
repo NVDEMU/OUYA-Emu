@@ -57,9 +57,9 @@ support (Android 9–11 is a sensible first test).
 OUYA_AVD_NAME=OUYA-Emu bash tools/run-ouya-emu.sh
 ```
 
-The wrapper expects the Android SDK at `ANDROID_SDK_ROOT` or `ANDROID_HOME`
-and launches with a writable system overlay. Use an AVD that permits
-`adb root` and `adb remount`; Google Play images are generally unsuitable.
+The wrapper expects the Android SDK at `ANDROID_SDK_ROOT` or `ANDROID_HOME`.
+For optional system-partition installation, set `OUYA_WRITABLE_SYSTEM=1`
+and use an AOSP/userdebug AVD that permits `adb root` and `adb remount`.
 
 ## Import original OUYA firmware apps
 
@@ -81,12 +81,23 @@ Android product makefile:
 include vendor/ouya-emu/device/ouya/ouya_product.mk
 ```
 
-After importing, copy the original APKs into the guest's system partition and
-reboot:
+After importing, sideload the original APKs into the guest:
 
 ```bash
 bash tools/install-ouya-apks.sh
 ```
+
+This installs them as regular apps first, which is the simplest persistent
+compatibility test. If a package needs to be a system app, use an AOSP/userdebug
+AVD and the optional mode:
+
+```bash
+OUYA_WRITABLE_SYSTEM=1 OUYA_AVD_NAME=OUYA-Emu bash tools/run-ouya-emu.sh
+bash tools/install-ouya-apks.sh --system
+```
+
+Temporary writable-system changes may be lost when the emulator exits; a
+custom built system image is the durable solution.
 
 Then query HOME candidates and select the actual dashboard component:
 
