@@ -147,3 +147,29 @@ AVD workflow above.
 
 See [LICENSE](LICENSE) for the inherited base repository license. New project
 files use the same license unless otherwise noted.
+
+
+## Add OUYA games from APK files
+
+OUYA titles are Android applications. With an OUYA guest running and
+`ANDROID_SDK_ROOT` (or `ANDROID_HOME`) configured, install a game directly:
+
+```bash
+bash tools/install-ouya-game.sh "/path/to/Game.apk"
+```
+
+For split APK bundles exported by some Android stores/tools, pass the
+`.apks` bundle instead:
+
+```bash
+bash tools/install-ouya-game.sh "/path/to/Game.apks"
+```
+
+The script uses Android's package installer inside the guest. It does not
+include, download, or bypass game licensing. Once installed, launch the game
+from the guest's app list or the OUYA dashboard's Play area if the dashboard
+recognizes the package. A successful APK install does not guarantee runtime
+compatibility: many OUYA games use ARMv7 native libraries, OUYA SDK/controller
+APIs, Android 4.x-era behavior, or Tegra-specific graphics assumptions. The
+current Android Emulator guest must provide ARM32 app support; compatibility
+and dashboard catalog integration are separate work items.
