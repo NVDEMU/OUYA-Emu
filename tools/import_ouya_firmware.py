@@ -42,7 +42,7 @@ def write_member(archive: zipfile.ZipFile, name: str, destination: Path) -> dict
 
 def extract_ramdisk_config(data: bytes, outdir: Path) -> list[str]:
     """Extract only regular init/fstab/property text files from newc CPIO."""
-    if data[:2] == b"\\x1f\\x8b":
+    if data[:2] == b"\x1f\x8b":
         data = gzip.decompress(data)
     position, extracted = 0, []
     while position + 110 <= len(data):
@@ -54,7 +54,7 @@ def extract_ramdisk_config(data: bytes, outdir: Path) -> list[str]:
         position += 110
         raw_name = data[position:position + name_size]
         position = (position + name_size + 3) & ~3
-        name = raw_name.rstrip(b"\\0").decode("utf-8", "replace")
+        name = raw_name.rstrip(b"\0").decode("utf-8", "replace")
         if name == "TRAILER!!!":
             break
         payload = data[position:position + file_size]
@@ -159,7 +159,7 @@ def main() -> int:
         "ramdisk_config_files": len(report["ramdisk_config_files"])
     }
     (args.out / "firmware-report.json").write_text(
-        json.dumps(report, indent=2) + "\\n", encoding="utf-8")
+        json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
     copied = report["staged_firmware_files"]
     if copied:
@@ -173,7 +173,7 @@ def main() -> int:
         lines += ["", "PRODUCT_COPY_FILES += $(OUYA_IMPORTED_FILES)"]
     else:
         lines = ["# No OUYA/Cortex APK or ODEX files found in this OTA."]
-    (args.out / "ouya-imported.mk").write_text("\\n".join(lines) + "\\n",
+    (args.out / "ouya-imported.mk").write_text("\n".join(lines) + "\n",
                                                 encoding="utf-8")
     print(f"Imported {len(copied)} OUYA/Cortex APK/ODEX files.")
     print(f"Extracted {len(report['ramdisk_config_files'])} ramdisk config files.")
