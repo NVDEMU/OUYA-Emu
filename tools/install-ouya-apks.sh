@@ -41,6 +41,14 @@ while IFS= read -r -d '' apk; do
     "$ADB" shell "mkdir -p '$remote_dir'"
     "$ADB" push "$apk" "$remote"
     "$ADB" shell "chown root:root '$remote' && chmod 0644 '$remote'"
+    # Preserve the matching legacy Dalvik optimized code when present.
+    odex="${apk%.apk}.odex"
+    if [[ -f "$odex" ]]; then
+      remote_odex="${remote%.apk}.odex"
+      echo "Copying matching Dalvik ODEX: ${odex##*/}"
+      "$ADB" push "$odex" "$remote_odex"
+      "$ADB" shell "chown root:root '$remote_odex' && chmod 0644 '$remote_odex'"
+    fi
   else
     echo "Installing original firmware APK as an app: $relative"
     "$ADB" install -r "$apk"
