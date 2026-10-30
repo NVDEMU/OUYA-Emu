@@ -15,12 +15,7 @@ if [[ ! -d "$STAGING" ]]; then
   exit 2
 fi
 
-mapfile -d '' APK_FILES < <(find "$STAGING/app" "$STAGING/priv-app" -type f -name '*.apk' -print0 2>/dev/null || true)
-if [[ ${#APK_FILES[@]} -eq 0 ]]; then
-  echo "No staged OUYA APKs found under $STAGING/app or priv-app." >&2
-  exit 2
-fi
-
+found=0
 "$ADB" wait-for-device
 "$ADB" root
 "$ADB" wait-for-device
@@ -29,7 +24,8 @@ if ! "$ADB" remount; then
   exit 1
 fi
 
-for apk in "${APK_FILES[@]}"; do
+while IFS= read -r -d '' apk; do
+  found=1
   relative="${apk#"$STAGING/"}"
   remote="/system/$relative"
   remote_dir="${remote%/*}"
@@ -37,7 +33,12 @@ for apk in "${APK_FILES[@]}"; do
   "$ADB" shell "mkdir -p '$remote_dir'"
   "$ADB" push "$apk" "$remote"
   "$ADB" shell "chown root:root '$remote' && chmod 0644 '$remote'"
-done
+done < <(find "$STAGING/app" "$STAGING/priv-app" -type f -name '*.apk' -print0 2>/dev/null)
+
+if [[ "$found" -eq 0 ]]; then
+  echo "No staged OUYA APKs found under $STAGING/app or priv-app." >&2
+  exit 2
+fi
 
 "$ADB" shell "restorecon -RF /system/app /system/priv-app || true"
 echo "OUYA APKs staged. Rebooting guest..."
