@@ -1,0 +1,32 @@
+{
+  "profile": "ouya-standard",
+  "version": 1,
+  "face_buttons": {
+    "host_south": "OUYA_O",
+    "host_east": "OUYA_U",
+    "host_north": "OUYA_Y",
+    "host_west": "OUYA_A"
+  },
+  "navigation": {
+    "dpad": "DPAD",
+    "left_stick": "LEFT_STICK",
+    "right_stick": "RIGHT_STICK",
+    "start": "START",
+    "select_or_back": "BACK"
+  },
+  "shoulders": {
+    "left_bumper": "L1",
+    "right_bumper": "R1",
+    "left_trigger": "L2",
+    "right_trigger": "R2"
+  },
+  "touch_surface": {
+    "input": "MOUSE_POINTER",
+    "click": "MOUSE_PRIMARY"
+  },
+  "notes": [
+    "Face-button mapping is positional: south/east/north/west follows the OUYA O/U/Y/A diamond.",
+    "This is the host-to-OUYA semantic profile. The guest-side OUYA framework must translate Android KeyEvent and MotionEvent values into OUYA SDK events.",
+    "The mapping is a target contract, not a claim that Android Emulator currently forwards every touchpad or analog event."
+  ]
+}
