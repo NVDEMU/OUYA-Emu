@@ -1,40 +1,124 @@
 # OUYA-Emu
 
-**An experiment in building an emulator for a previously un-emulated gaming platform.**
+**A desktop-hosted environment for the original OUYA console experience.**
 
-OUYA-Emu is a dedicated OUYA-compatible Android environment for desktop systems. Rather than emulate the Tegra 3 hardware from transistor level, the project starts with an x86_64 Android guest and adds the OUYA-specific launcher, controller behavior, and framework compatibility needed to run original OUYA software.
+The goal is to boot the **real OUYA dashboard**, navigate its original Play,
+Discover, Make, and Manage screens with a controller, and launch original
+OUYA games. This is analogous to Dolphin's Wii System Menu support: the
+authentic system UI is the target, not a newly drawn imitation.
 
-The current Android base is the BlissOS **Typhoon x86_64** manifest branch. This is a development base, not a claim of full OUYA hardware emulation or game compatibility.
+## Architecture
 
-## Current implementation
+OUYA firmware is an Android 4.x build for NVIDIA Tegra 3 hardware. The stock
+kernel, bootloader, device tree, and NVIDIA drivers are board-specific and
+cannot be dropped into the Android Emulator's virtual hardware. OUYA-Emu
+therefore separates the original OUYA application layer from the physical
+console boot chain:
 
-- [x] Android x86_64 source/build base selected (BlissOS Typhoon).
-- [x] OUYA launcher application source added.
-- [x] Product integration fragment added to include the launcher in an Android system image.
-- [ ] Build and boot a customized Android image.
-- [ ] Verify ARM32 native-code translation on the selected guest image.
-- [ ] Validate OUYA controller mappings and original game behavior.
-- [ ] Implement missing OUYA SDK/framework services.
+1. **Host runtime:** Android Emulator provides a desktop-hosted Android guest.
+2. **OUYA firmware layer:** import the original OUYA/Cortex APKs from a
+   user-supplied stock OTA. Do not substitute the in-repo placeholder launcher.
+3. **Authentic dashboard:** select the imported OUYA dashboard as the guest's
+   HOME activity and retain its original UI/resources.
+4. **Controller path:** map host gamepad events to OUYA's O/U/Y/A face-button
+   layout, D-pad, sticks, shoulders, triggers, and touch surface.
 
-See [the OUYA guest setup guide](device/ouya/README.md) and [launcher README](packages/apps/OUYALauncher/README.md).
+This approach aims to preserve the actual OUYA menu and application behavior.
+It is not a cycle-accurate Tegra 3 emulator, and it does not imply every
+original game or proprietary service already works.
 
-## Build base
+## Current implementation status
 
-The repository is a repo-manifest checkout. Initialize and sync the selected branch:
+- [x] BlissOS Typhoon x86_64 source manifest retained as an experimental
+      Android image build base.
+- [x] Host Android Emulator AVD launcher script added.
+- [x] Stock OTA APK importer added (user-supplied firmware only).
+- [x] Product fragment now imports staged OUYA APKs and no longer installs
+      the replacement `OUYALauncher` as the system HOME.
+- [x] HOME-selection helper added for the actual dashboard activity.
+- [x] OUYA positional controller mapping contract documented.
+- [ ] Build and boot the ARM64 AVD with 32-bit app support.
+- [ ] Import and identify the original dashboard and companion APKs from a
+      real OTA; verify the dashboard launches as HOME.
+- [ ] Implement missing OUYA privileged permissions and framework services.
+- [ ] Validate all controller events, including the controller touch surface.
+- [ ] Launch and test an original ARM32 OUYA game.
+
+The existing `OUYALauncher` source is retained only as a development fallback;
+it is intentionally not included in the product packages.
+
+## Quick start: host emulator
+
+Install Android SDK Platform-Tools and Android Emulator. Create an AVD named
+`OUYA-Emu` using an ARM64 Android system image with ARM32 app support.
+
+```bash
+OUYA_AVD_NAME=OUYA-Emu bash tools/run-ouya-emu.sh
+```
+
+The wrapper expects the Android SDK at `ANDROID_SDK_ROOT` or `ANDROID_HOME`.
+
+## Import original OUYA firmware apps
+
+Obtain a stock OUYA OTA legally and keep it local. For example, the final
+official package is commonly referenced as
+`RC-OUYA-1.2.1427-r1_ota.zip`.
+
+```bash
+python3 tools/import_ouya_firmware.py /path/to/RC-OUYA-1.2.1427-r1_ota.zip
+```
+
+The importer stages OUYA/Cortex-named APKs from the OTA and generates
+`vendor/ouya-emu/proprietary/ouya/ouya-imported.mk`. Review its
+`import-report.json` and confirm that the original dashboard and companion
+packages were found. Include the project product fragment from the selected
+Android product makefile:
+
+```make
+include vendor/ouya-emu/device/ouya/ouya_product.mk
+```
+
+After boot, query HOME candidates and select the actual dashboard component:
+
+```bash
+adb shell cmd package query-activities --brief \\\
+  -a android.intent.action.MAIN -c android.intent.category.HOME
+bash tools/set-ouya-home.sh package.name/.DashboardActivity
+```
+
+The component varies by firmware build and is intentionally not guessed.
+
+See [the authentic system integration guide](device/ouya/README.md) and
+[controller mapping contract](controller/ouya-controller-profile.json).
+
+## Important limitations
+
+- The stock OUYA OTA is not a bootable Android Emulator system image. Its
+  Tegra-specific boot chain and drivers are not used.
+- An ARM64 guest with ARM32 compatibility is required for OUYA native code.
+  Translation and game compatibility are not yet verified.
+- Copying original APKs is only the first step. Some OUYA applications may
+  require signature permissions, privileged permissions, shared UIDs,
+  framework classes, native libraries, or backend services.
+- The dashboard may open but fail to populate Discover/Store content until
+  the corresponding OUYA APIs are implemented or redirected.
+- No proprietary firmware, OUYA APKs, games, keys, or game data are included.
+
+## Source build base
+
+The repository retains the BlissOS Typhoon manifest for experimental Android
+image integration:
 
 ```bash
 repo init -u https://github.com/NVDEMU/OUYA-Emu.git -b typhoon-x86 -m bliss.xml --git-lfs
 repo sync -c --force-sync --no-tags --no-clone-bundle -j"$(nproc --all)" --optimized-fetch --prune
 ```
 
-Follow the upstream BlissOS build prerequisites in its documentation. The source tree is large and needs a Linux build host with substantial disk space. A successful source sync is not the same as a successful OUYA image build.
-
-## Experiment scope
-
-This project aims to run original OUYA Android applications in a desktop-hosted Android environment and recreate the OUYA console experience. It does **not** currently emulate a physical Tegra 3 board, reproduce NVIDIA's proprietary GPU driver, or guarantee compatibility with every OUYA title.
-
-Original firmware, APKs, game data, and other copyrighted materials are not distributed by this repository. Supply files you are legally entitled to use.
+A full BlissOS source build requires a Linux build host and substantial disk
+space. This source manifest path is separate from the host Android Emulator
+AVD workflow above.
 
 ## License
 
-See [LICENSE](LICENSE) for the inherited base repository license. New project files are provided under the same license unless otherwise noted.
+See [LICENSE](LICENSE) for the inherited base repository license. New project
+files use the same license unless otherwise noted.
