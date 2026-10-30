@@ -107,10 +107,13 @@ adb shell cmd package query-activities --brief \\\
 bash tools/set-ouya-home.sh package.name/.DashboardActivity
 ```
 
-The component varies by firmware build and is intentionally not guessed.
-If an OUYA APK requires platform-signature permissions or a shared system UID,
-copying it into `/system` will not be enough; that compatibility remains
-unimplemented. The Bliss product-fragment route is a separate source-image
+The imported `RC-OUYA-1.2.1427-r1` dashboard manifest was inspected: its package is `tv.ouya.console`, and the HOME activity is `tv.ouya.console.launcher.guide.GuideActivity`. For that exact firmware, try:
+
+```bash
+bash tools/set-ouya-home.sh tv.ouya.console/tv.ouya.console.launcher.guide.GuideActivity
+```
+
+This identifies the manifest component, not a successful launch. The dashboard APK has no `classes.dex`; its code is supplied as a matching Dalvik `.odex`. Android 9–11 uses ART and cannot directly consume that Android 4.1 Dalvik odex. A deodex/rebuild or Android 4.1-compatible runtime path is therefore required before the original dashboard can be expected to execute. The manifest also requests numerous privileged Android and OUYA permissions, so merely sideloading it is insufficient. The Bliss product-fragment route is a separate source-image
 integration path, not the AVD workflow above.
 
 See [the authentic system integration guide](device/ouya/README.md) and
