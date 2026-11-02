@@ -56,13 +56,13 @@ fi
 }
 if [[ -z "$BAKSMALI_JAR" ]]; then
   command -v "$BAKSMALI" >/dev/null 2>&1 || {
-    echo "Set BAKSMALI to a smali 2.5.x executable or BAKSMALI_JAR to its fat JAR." >&2
+    echo "Set BAKSMALI to a smali 3.0.10 executable or BAKSMALI_JAR to its 3.0.10 fat JAR." >&2
     exit 2
   }
 fi
 if [[ -z "$SMALI_JAR" ]]; then
   command -v "$SMALI" >/dev/null 2>&1 || {
-    echo "Set SMALI to a smali 2.5.x executable or SMALI_JAR to its fat JAR." >&2
+    echo "Set SMALI to a smali 3.0.10 executable or SMALI_JAR to its 3.0.10 fat JAR." >&2
     exit 2
   }
 fi
