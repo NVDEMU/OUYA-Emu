@@ -7,3 +7,6 @@
 # Local Android emulator state
 /.android/
 /avd/
+
+# Locally downloaded smali/baksmali toolchain
+/.tools/
