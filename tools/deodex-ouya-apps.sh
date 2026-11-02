@@ -19,7 +19,7 @@ SMALI_JAR="${SMALI_JAR:-$ROOT/.tools/smali/smali-3.0.10-fat.jar}"
 
 usage() {
   echo "Usage: $0 [--staging /path/to/ouya-firmware-staging]" >&2
-  echo "Requires Java, baksmali/smali 2.5.x (commands or fat JARs), and Android SDK apksigner." >&2
+  echo "Requires Java, baksmali/smali 3.0.10 (commands or fat JARs), and Android SDK apksigner." >&2
 }
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then usage; exit 0; fi
 if [[ "${1:-}" == "--staging" ]]; then
