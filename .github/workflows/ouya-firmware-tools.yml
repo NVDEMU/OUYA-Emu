@@ -1,0 +1,23 @@
+name: OUYA firmware tooling
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-firmware-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test firmware importer
+        run: python -m unittest discover -s tests -v
+      - name: Validate shell scripts
+        run: |
+          bash -n tools/deodex-ouya-apps.sh
+          bash -n tools/install-ouya-apks.sh
+          bash -n tools/install-ouya-game.sh
+          bash -n tools/run-ouya-emu.sh
+          bash -n tools/set-ouya-home.sh
