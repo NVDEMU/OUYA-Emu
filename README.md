@@ -30,7 +30,7 @@ A key compatibility issue was identified in the stock firmware: OUYALauncher.apk
 
 - Android SDK with Emulator, Platform-Tools, and Build-Tools (including apksigner).
 - A Java JDK (java and keytool).
-- baksmali and smali 2.5.x command-line tools, or their fat JARs.
+- Java, plus the pinned smali/baksmali 3.0.10 fat JARs downloaded by the setup script.
 - An ARM64 Android Emulator system image with 32-bit ARM application support.
 - A stock OUYA OTA that you obtained yourself. Firmware and games are not redistributed here.
 
@@ -46,16 +46,17 @@ python3 tools/import_ouya_firmware.py /path/to/RC-OUYA-1.2.1427-r1_ota.zip
 
 The importer stages OUYA/Cortex APK+ODEX pairs under vendor/ouya-emu/proprietary/ouya/system and the exact system/framework JAR+ODEX set under vendor/ouya-emu/proprietary/ouya/deodex/system/framework. It writes firmware-report.json, including the dependencies read from each Dalvik ODEX. The proprietary staging tree is ignored by Git.
 
-Next, point the conversion script at the smali 2.5.x tools and Android SDK. Use command names on PATH:
+Set up the pinned conversion tools and then rebuild the APKs:
 
 ~~~sh
+bash tools/setup-smali.sh
 ANDROID_SDK_ROOT=/path/to/Android/Sdk bash tools/deodex-ouya-apps.sh
 ~~~
 
-Or point directly at the fat JARs:
+The setup script downloads the official v3.0.10 fat JARs from the baksmali/smali release and verifies both SHA-256 digests. Manual paths are also supported:
 
 ~~~sh
-ANDROID_SDK_ROOT=/path/to/Android/Sdk BAKSMALI_JAR=/path/to/baksmali-2.5.2-fat.jar SMALI_JAR=/path/to/smali-2.5.2-fat.jar bash tools/deodex-ouya-apps.sh
+ANDROID_SDK_ROOT=/path/to/Android/Sdk BAKSMALI_JAR=/path/to/baksmali-fat.jar SMALI_JAR=/path/to/smali-fat.jar bash tools/deodex-ouya-apps.sh
 ~~~
 
 The script deodexes against the framework extracted from the **same OTA**, assembles classes.dex, removes stale APK signature records, and signs the rebuilt APKs with a local debug key. It does not and cannot recreate OUYA's original signing key. Therefore, OUYA platform-signature permissions and shared-UID assumptions may still fail; this is an explicit compatibility task, not something signing with a local key solves.
