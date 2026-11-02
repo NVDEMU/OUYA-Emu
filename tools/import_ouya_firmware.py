@@ -11,12 +11,16 @@ import argparse
 import gzip
 import hashlib
 import json
+import re
 import struct
 import zipfile
 from pathlib import Path, PurePosixPath
 
 TOKENS = ("ouya", "cortex")
 APP_DIRS = ("system/app/", "system/priv-app/")
+FRAMEWORK_DIR = "system/framework/"
+ODEX_MAGIC = b"dey\\n036\\0"
+FRAMEWORK_DEPENDENCY = re.compile(rb"/system/framework/([A-Za-z0-9_.+-]+\\.odex)\\0")
 MAX_MEMBER = 512 * 1024 * 1024
 MAX_TOTAL = 2 * 1024 * 1024 * 1024
 
@@ -39,6 +43,41 @@ def write_member(archive: zipfile.ZipFile, name: str, destination: Path) -> dict
     return {"ota_path": name, "staged_path": destination.as_posix(),
             "size": info.file_size, "sha256": digest.hexdigest()}
 
+
+
+def odex_dependencies(data: bytes) -> list[str]:
+    """Return framework ODEX names referenced by a Dalvik ODEX file."""
+    if len(data) < 40 or data[:8] != ODEX_MAGIC:
+        return []
+    deps_offset, deps_length = struct.unpack_from("<II", data, 16)
+    if deps_offset > len(data) or deps_length > len(data) - deps_offset:
+        raise ValueError("Malformed Dalvik ODEX dependency block")
+    block = data[deps_offset:deps_offset + deps_length]
+    return sorted({match.group(1).decode("ascii")
+                   for match in FRAMEWORK_DEPENDENCY.finditer(block)})
+
+
+def write_product_makefile(out: Path, imported_apps: list[dict]) -> None:
+    """Copy only rebuilt APKs; raw Android 4.1 ODEX files are not ART inputs."""
+    apps = [item for item in imported_apps
+            if item["ota_path"].lower().endswith(".apk")]
+    lines = [
+        "# Generated locally. Run tools/deodex-ouya-apps.sh before product build.",
+        "# Proprietary OUYA firmware must remain local and uncommitted.",
+    ]
+    if apps:
+        lines.append("OUYA_IMPORTED_APKS := \\")
+        for index, item in enumerate(apps):
+            original = PurePosixPath(item["ota_path"])
+            staged = "vendor/ouya-emu/proprietary/ouya/deodexed/" + str(original)
+            continuation = " \\" if index < len(apps) - 1 else ""
+            lines.append(
+                f"    {staged}:system/{original.relative_to('system')}{continuation}")
+        lines += ["", "PRODUCT_COPY_FILES += $(OUYA_IMPORTED_APKS)"]
+    else:
+        lines.append("# No OUYA/Cortex APK files found in this OTA.")
+    (out / "ouya-imported.mk").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8")
 
 def extract_ramdisk_config(data: bytes, outdir: Path) -> list[str]:
     """Extract only regular init/fstab/property text files from newc CPIO."""
@@ -89,7 +128,7 @@ def main() -> int:
         "warning": "Local user-supplied proprietary firmware. Never commit this directory.",
         "firmware_metadata": {}, "system_properties": {},
         "updater_script": "", "boot_image": None,
-        "ramdisk_config_files": [], "staged_firmware_files": [], "notes": []
+        "ramdisk_config_files": [], "staged_firmware_files": [], "staged_framework_files": [], "notes": []
     }
     with zipfile.ZipFile(args.ota) as archive:
         infos = archive.infolist()
@@ -119,6 +158,16 @@ def main() -> int:
                             props[key] = value
                 report["system_properties"] = props
 
+        # Preserve the matching API-16 framework set for ODEX conversion.
+        # These files are for local tooling only and are not copied into the
+        # modern Android guest system image.
+        for name in sorted(names):
+            if name.startswith(FRAMEWORK_DIR):
+                relative = PurePosixPath(name).relative_to("system")
+                destination = args.out / "deodex" / "system" / Path(*relative.parts)
+                report["staged_framework_files"].append(
+                    write_member(archive, name, destination))
+
         for name in sorted(names):
             lower = name.lower()
             if (lower.startswith(APP_DIRS) and
@@ -126,8 +175,18 @@ def main() -> int:
                     lower.endswith((".apk", ".odex"))):
                 relative = PurePosixPath(name).relative_to("system")
                 destination = args.out / "system" / Path(*relative.parts)
-                report["staged_firmware_files"].append(
-                    write_member(archive, name, destination))
+                item = write_member(archive, name, destination)
+                if lower.endswith(".odex"):
+                    item["odex_dependencies"] = odex_dependencies(archive.read(name))
+                    item["missing_framework_dependencies"] = [
+                        dep for dep in item["odex_dependencies"]
+                        if f"{FRAMEWORK_DIR}{dep}" not in names
+                    ]
+                    if item["missing_framework_dependencies"]:
+                        report["notes"].append(
+                            f"{name} is missing framework ODEX dependencies: "
+                            + ", ".join(item["missing_framework_dependencies"]))
+                report["staged_firmware_files"].append(item)
 
         if "boot.img" in names:
             boot = archive.read("boot.img")
@@ -156,29 +215,19 @@ def main() -> int:
 
     report["counts"] = {
         "firmware_apk_and_odex_files": len(report["staged_firmware_files"]),
-        "ramdisk_config_files": len(report["ramdisk_config_files"])
+        "ramdisk_config_files": len(report["ramdisk_config_files"]),
+        "framework_files": len(report["staged_framework_files"])
     }
     (args.out / "firmware-report.json").write_text(
         json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
     copied = report["staged_firmware_files"]
-    if copied:
-        lines = ["# Generated locally. Do not commit proprietary firmware.",
-                 "OUYA_IMPORTED_FILES := \\"]
-        for index, item in enumerate(copied):
-            source = item["staged_path"]
-            target = "system/" + source.split("/system/", 1)[1]
-            continuation = " \\" if index < len(copied) - 1 else ""
-            lines.append(f"    {source}:{target}{continuation}")
-        lines += ["", "PRODUCT_COPY_FILES += $(OUYA_IMPORTED_FILES)"]
-    else:
-        lines = ["# No OUYA/Cortex APK or ODEX files found in this OTA."]
-    (args.out / "ouya-imported.mk").write_text("\n".join(lines) + "\n",
-                                                encoding="utf-8")
+    write_product_makefile(args.out, copied)
     print(f"Imported {len(copied)} OUYA/Cortex APK/ODEX files.")
+    print(f"Staged {len(report['staged_framework_files'])} exact Android framework files for deodexing.")
     print(f"Extracted {len(report['ramdisk_config_files'])} ramdisk config files.")
     print(f"Report: {args.out / 'firmware-report.json'}")
-    return 0 if copied else 2
+    return 0 if any(item["ota_path"].lower().endswith(".apk") for item in copied) else 2
 
 
 if __name__ == "__main__":
