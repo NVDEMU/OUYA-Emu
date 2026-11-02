@@ -29,8 +29,7 @@ A key compatibility issue was identified in the stock firmware: OUYALauncher.apk
 ## Requirements
 
 - Android SDK with Emulator, Platform-Tools, and Build-Tools (including apksigner).
-- A Java JDK (java and keytool).
-- Java, plus the pinned smali/baksmali 3.0.10 fat JARs downloaded by the setup script.
+- A Java JDK (java and keytool), plus the pinned smali/baksmali 3.0.10 fat JARs downloaded by the setup script.
 - An ARM64 Android Emulator system image with 32-bit ARM application support.
 - A stock OUYA OTA that you obtained yourself. Firmware and games are not redistributed here.
 
