@@ -19,8 +19,8 @@ from pathlib import Path, PurePosixPath
 TOKENS = ("ouya", "cortex")
 APP_DIRS = ("system/app/", "system/priv-app/")
 FRAMEWORK_DIR = "system/framework/"
-ODEX_MAGIC = b"dey\\n036\\0"
-FRAMEWORK_DEPENDENCY = re.compile(rb"/system/framework/([A-Za-z0-9_.+-]+\\.odex)\\0")
+ODEX_MAGIC = b"dey\n036\0"
+FRAMEWORK_DEPENDENCY = re.compile(rb"/system/framework/([A-Za-z0-9_.+-]+\.odex)\0")
 MAX_MEMBER = 512 * 1024 * 1024
 MAX_TOTAL = 2 * 1024 * 1024 * 1024
 
