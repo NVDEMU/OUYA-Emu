@@ -4,9 +4,9 @@ set -euo pipefail
 
 VERSION="3.0.10"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="\${OUYA_TOOLS_DIR:-$ROOT/.tools/smali}"
-CURL="\${CURL:-curl}"
-SHASUM="\${SHASUM:-shasum}"
+DEST="${OUYA_TOOLS_DIR:-$ROOT/.tools/smali}"
+CURL="${CURL:-curl}"
+SHASUM="${SHASUM:-shasum}"
 
 command -v "$CURL" >/dev/null 2>&1 || { echo "curl is required." >&2; exit 2; }
 command -v "$SHASUM" >/dev/null 2>&1 || { echo "shasum is required." >&2; exit 2; }
