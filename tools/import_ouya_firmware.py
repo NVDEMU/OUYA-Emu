@@ -27,7 +27,7 @@ MAX_TOTAL = 2 * 1024 * 1024 * 1024
 
 def safe_name(name: str) -> bool:
     path = PurePosixPath(name)
-    return not path.is_absolute() and ".." not in path.parts
+    return not path.is_absolute() and ".." not in path.parts and "\\" not in name
 
 
 def write_member(archive: zipfile.ZipFile, name: str, destination: Path) -> dict:
