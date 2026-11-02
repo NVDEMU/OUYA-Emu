@@ -18,13 +18,14 @@ python3 tools/import_ouya_firmware.py /path/to/RC-OUYA-1.2.1427-r1_ota.zip
 
 This stages OUYA/Cortex APK and ODEX pairs under vendor/ouya-emu/proprietary/ouya/system, the full system/framework file set under vendor/ouya-emu/proprietary/ouya/deodex/system/framework, boot ramdisk configuration, and firmware-report.json. The proprietary files are not committed.
 
-Install Java, baksmali/smali 2.5.x, and Android SDK Build-Tools with apksigner. Then run:
+Install Java and Android SDK Build-Tools with apksigner. Then download the pinned smali/baksmali toolchain and run:
 
 ~~~sh
+bash tools/setup-smali.sh
 ANDROID_SDK_ROOT=/path/to/Android/Sdk bash tools/deodex-ouya-apps.sh
 ~~~
 
-Or specify the fat JARs with BAKSMALI_JAR and SMALI_JAR. The conversion script uses API level 16, rebuilds APKs with classes.dex, removes invalidated stock signature records, and signs the result with a local debug key. That local key is not the OUYA platform key. Any signature-protected permissions, shared UID, or privileged service dependencies must be handled separately.
+The downloader uses the official v3.0.10 release assets and verifies their SHA-256 checksums. You can override the JAR paths with BAKSMALI_JAR and SMALI_JAR. The conversion script uses API level 16, rebuilds APKs with classes.dex, removes invalidated stock signature records, and signs the result with a local debug key. That local key is not the OUYA platform key. Any signature-protected permissions, shared UID, or privileged service dependencies must be handled separately.
 
 The rebuilt APKs are written to vendor/ouya-emu/proprietary/ouya/deodexed/system/app. The generated ouya-imported.mk references only these rebuilt APKs; raw Dalvik ODEX files are never copied into a modern ART system image.
 
