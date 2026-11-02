@@ -12,8 +12,10 @@ JAVA="${JAVA:-java}"
 KEYTOOL="${KEYTOOL:-keytool}"
 BAKSMALI="${BAKSMALI:-baksmali}"
 SMALI="${SMALI:-smali}"
-BAKSMALI_JAR="${BAKSMALI_JAR:-}"
-SMALI_JAR="${SMALI_JAR:-}"
+BAKSMALI_JAR="${BAKSMALI_JAR:-$ROOT/.tools/smali/baksmali-3.0.10-fat.jar}"
+SMALI_JAR="${SMALI_JAR:-$ROOT/.tools/smali/smali-3.0.10-fat.jar}"
+[[ -f "$BAKSMALI_JAR" ]] || BAKSMALI_JAR=""
+[[ -f "$SMALI_JAR" ]] || SMALI_JAR=""
 
 usage() {
   echo "Usage: $0 [--staging /path/to/ouya-firmware-staging]" >&2
