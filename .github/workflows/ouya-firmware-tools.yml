@@ -16,6 +16,7 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Validate shell scripts
         run: |
+          bash -n tools/setup-smali.sh
           bash -n tools/deodex-ouya-apps.sh
           bash -n tools/install-ouya-apks.sh
           bash -n tools/install-ouya-game.sh
