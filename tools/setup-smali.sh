@@ -15,7 +15,7 @@ mkdir -p "$DEST"
 download_verified() {
   name="$1"
   expected="$2"
-  url="https://github.com/baksmali/smali/releases/download/v$VERSION/$name-$VERSION-fat.jar"
+  url="https://github.com/baksmali/smali/releases/download/$VERSION/$name-$VERSION-fat.jar"
   target="$DEST/$name-$VERSION-fat.jar"
   tmp="$target.download"
   echo "Downloading $name $VERSION..."
